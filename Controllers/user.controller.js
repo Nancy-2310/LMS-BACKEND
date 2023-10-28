@@ -1,5 +1,10 @@
 import AppError from "../utils/error.util";
 
+const cookieOptions = {
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
+    httpOnly: true,
+    secure: true
+}
 const register = async (req, res) => {
         const { fullName, email, password } = req.body;
 
@@ -35,12 +40,13 @@ const register = async (req, res) => {
         user.password = undefined;
    
         const token = await user.generateJWTToken();
-
+     
+        res.cookie('token', token, cookieOptions);
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
             user,
-        })
+        });
 
 };
 
