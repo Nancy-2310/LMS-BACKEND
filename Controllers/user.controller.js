@@ -33,6 +33,8 @@ const register = async (req, res) => {
         await user.save();
 
         user.password = undefined;
+   
+        const token = await user.generateJWTToken();
 
         res.status(201).json({
             success: true,
