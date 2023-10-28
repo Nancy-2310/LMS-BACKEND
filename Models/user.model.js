@@ -59,9 +59,12 @@ userSchema.methods = {
                   expiresIn: process.env.JWT_EXPIRY,
                 }
             )
-        }
-    }
-}
+        },
+        comparePassword: async function (plainPassword) {
+            return await bcrypt.compare(plainPassword, this.password);
+          }
+    };
+   
 
 const User = model('User', userSchema);
 
