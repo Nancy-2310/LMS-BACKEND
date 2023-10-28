@@ -36,7 +36,16 @@ const userSchema = newSchema({
         },
         forgotPasswordToken: String,
         forgotPasswordExpiry: Date
-});
+},
+{ timestamps: true }
+);
+
+userSchema.pre('save', function(next){
+    if(!this.isModified('password')) {
+        return next();
+    }
+    this.password = bcrypt.hash(this.password, 10);
+})
 
 const User = model('User', userSchema);
 
