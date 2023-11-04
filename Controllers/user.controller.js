@@ -150,20 +150,26 @@ export const login = asyncHandler(async (req, res, next) => {
  * @ROUTE @POST {{URL}}/api/v1/user/logout
  * @ACCESS Public
  */
-export const logout = asyncHandler(async (_req, res, _next) => {
-  // Setting the cookie value to null
-  res.cookie('token', null, {
-    secure: process.env.NODE_ENV === 'production' ? true : false,
-    maxAge: 0,
-    httpOnly: true,
-  });
+export const logout = async (req, res, next) => {
+  try {
+    const cookieOption = {
+      expires: new Date(), // current expiry date
+      httpOnly: true //  not able to modify  the cookie in client side
+    };
 
-  // Sending the response
-  res.status(200).json({
-    success: true,
-    message: 'User logged out successfully',
-  });
-});
+    // return response with cookie without token
+    res.cookie("token", null, cookieOption);
+    res.status(200).json({
+      success: true,
+      message: "Logged Out"
+    });
+  } catch (error) {
+    res.stats(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
 
 /**
  * @LOGGED_IN_USER_DETAILS
