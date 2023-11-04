@@ -2,7 +2,7 @@ import { Schema , model } from "mongoose";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const userSchema = newSchema({
+const userSchema = new Schema({
         fullName:{
             type:String,
             required: [true, 'Name is required'],
@@ -12,7 +12,7 @@ const userSchema = newSchema({
             trim: true,
         },
         email: {
-            type: 'String',
+            type: String,
             required: [true, 'Email is required'],
             lowercase: true,
             trim: true,
@@ -30,10 +30,10 @@ const userSchema = newSchema({
         },
         avatar: {
             public_id: {
-                type: 'String'
+                type: String
             },
             secure_url: {
-                type: 'String'
+                type: String
             }
         },
         forgotPasswordToken: String,
@@ -42,29 +42,34 @@ const userSchema = newSchema({
 { timestamps: true }
 );
 
-userSchema.pre('save', function(next){
+userSchema.pre('save', async function(next){
     if(!this.isModified('password')) {
         return next();
     }
-    this.password = bcrypt.hash(this.password, 10);
-})
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
 
 userSchema.methods = {
-    generateJWTToken : {
-        generateJWTToken: async function(){
-            return await jwt.sign(
-                { id: this._id, role: this.role, subscription: this.subscription },
-                process.env.JWT_SECRET,
-                {
-                  expiresIn: process.env.JWT_EXPIRY,
-                }
-            )
-        },
-        comparePassword: async function (plainPassword) {
-            return await bcrypt.compare(plainPassword, this.password);
-          }
-    };
-   
+    // method which will help us compare plain password with hashed password and returns true or false
+    comparePassword: async function (plainPassword) {
+      return await bcrypt.compare(plainPassword, this.password);
+    },
+  
+    // Will generate a JWT token with user id as payload
+    generateJWTToken: async function () {
+      console.log(process.env.JWT_SECRET);
+      console.log(process.env.JWT_EXPIRY);
+      return await jwt.sign(
+        { id: this._id, role: this.role, subscription: this.subscription },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRY,
+        }
+      );
+    },
+    
+  };
 
 const User = model('User', userSchema);
 

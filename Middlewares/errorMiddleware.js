@@ -8,3 +8,4 @@ const errorMiddleware = (err, req, res, next) => {
         stack: err.stack
     })
 }
+export default errorMiddleware;

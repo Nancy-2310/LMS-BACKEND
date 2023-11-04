@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
+import { config } from 'dotenv';
+config();
 
 mongoose.set('strictQuery', false);
 
 const connectionToDB = async () => {
     try{
         const { connection } = await mongoose.connect(
-            process.env.MONGO_URI || `mongodb://127.0.0.1:27017/MyDB`
+            `mongodb://127.0.0.1:27017/MyDB`
     );
 
     if(connection) {
@@ -16,5 +18,7 @@ const connectionToDB = async () => {
         process.exit(1);
     }
 };
+
+//  || `mongodb://127.0.0.1:27017/MyDB`
 
 export default connectionToDB;

@@ -3,8 +3,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { config } from 'dotenv';
-import userRoutes from './routes/user.routes.js';
-import { errorMonitor } from 'nodemailer/lib/xoauth2/index.js';
+import userRoutes from './Routes/user.routes.js';
+import errorMiddleware from './Middlewares/errorMiddleware.js'
+// import { errorMonitor } from 'nodemailer/lib/xoauth2/index.js';
 config();
 
 const app = express();
@@ -32,4 +33,5 @@ app.all('*', (req, res) => {
 })
 
 app.use(errorMiddleware);
+
 export default app;
