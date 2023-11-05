@@ -1,32 +1,30 @@
-import path from "path";
-
+import cloudinaryPackage from "cloudinary";
 import multer from "multer";
+import {CloudinaryStorage} from "multer-storage-cloudinary"
+import dotenv from "dotenv";
+dotenv.config();
+const cloudinary=cloudinaryPackage.v2;
 
-const upload = multer({
-  dest: "uploads/",
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 mb in size max limit
-  storage: multer.diskStorage({
-    destination: "uploads/",
-    filename: (_req, file, cb) => {
-      cb(null, file.originalname);
-    },
-  }),
-  fileFilter: (_req, file, cb) => {
-    let ext = path.extname(file.originalname);
 
-    if (
-      ext !== ".jpg" &&
-      ext !== ".jpeg" &&
-      ext !== ".webp" &&
-      ext !== ".png" &&
-      ext !== ".mp4"
-    ) {
-      cb(new Error(`Unsupported file type! ${ext}`), false);
-      return;
+//configure cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+
+});
+
+const storage=new CloudinaryStorage({
+    cloudinary,
+    allowedFormats:["jpg","jpeg","png"],
+    params:{
+        folder:"Nancy",
     }
+})
 
-    cb(null, true);
-  },
+//init multer with storage
+const upload=multer({
+    storage,
 });
 
 export default upload;

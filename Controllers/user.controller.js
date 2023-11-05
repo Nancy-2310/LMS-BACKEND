@@ -22,7 +22,7 @@ const cookieOptions = {
 export const register = asyncHandler(async (req, res, next) => {
   // Destructuring the necessary data from req object
   const { fullName, email, password } = req.body;
-  console.log(req.body);
+  console.log(`${fullName}\n${email}\n${password}`);
   // Check if the data is there or not, if not throw error message
   if (!fullName || !email || !password) {
     return next(new AppError('All fields are required', 400));
@@ -54,8 +54,8 @@ export const register = asyncHandler(async (req, res, next) => {
       new AppError('User registration failed, please try again later', 400)
     );
   }
-  console.log(user);
-
+  // console.log(user);
+  console.log("handdling File");
   // Run only if user sends a file
   if (req.file) {
     try {
@@ -66,7 +66,6 @@ export const register = asyncHandler(async (req, res, next) => {
         gravity: 'faces', // This option tells cloudinary to center the image around detected faces (if any) after cropping or resizing the original image
         crop: 'fill',
       });
-
       // If success
       if (result) {
         // Set the public_id and secure_url in DB
@@ -74,27 +73,31 @@ export const register = asyncHandler(async (req, res, next) => {
         user.avatar.secure_url = result.secure_url;
 
         // After successful upload remove the file from local storage
-        fs.rm(`uploads/${req.file.filename}`);
+        // console.log(`uploads/${req.file.filename}`)
+        // await fs.rm(`uploads/${req.file.filename}`);
+        console.log("file saved")
       }
     } catch (error) {
+      console.error("Coludianry Error : ", error);
       return next(
         new AppError(error || 'File not uploaded, please try again', 400)
       );
     }
   }
-
+  console.log("file Handeled")
   // Save the user object
-  await user.save();
+  console.log("saving user \n", user);
+  const saved = await user.save();
   // Generating a JWT token
-  console.log(user)
+  console.log("User Saved to db => ", saved);
   const token = await user.generateJWTToken();
-
+  console.log("jwt token genrated");
   // Setting the password to undefined so it does not get sent in the response
   user.password = undefined;
 
   // Setting the token in the cookie with name token along with cookieOptions
   res.cookie('token', token, cookieOptions);
-
+  console.log("Token saved in cookie");
   // If all good send the response to the frontend
   res.status(201).json({
     success: true,
@@ -150,26 +153,21 @@ export const login = asyncHandler(async (req, res, next) => {
  * @ROUTE @POST {{URL}}/api/v1/user/logout
  * @ACCESS Public
  */
-export const logout = async (req, res, next) => {
-  try {
-    const cookieOption = {
-      expires: new Date(), // current expiry date
-      httpOnly: true //  not able to modify  the cookie in client side
-    };
+export const logout = asyncHandler(async (_req, res, _next) => {
+  console.log("logout function")
+  // Setting the cookie value to null
+  res.cookie('token', null, {
+    secure: process.env.NODE_ENV === 'production' ? true : false,
+    maxAge: 0,
+    httpOnly: true,
+  });
 
-    // return response with cookie without token
-    res.cookie("token", null, cookieOption);
-    res.status(200).json({
-      success: true,
-      message: "Logged Out"
-    });
-  } catch (error) {
-    res.stats(400).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
+  // Sending the response
+  res.status(200).json({
+    success: true,
+    message: 'User logged out successfully',
+  });
+});
 
 /**
  * @LOGGED_IN_USER_DETAILS
