@@ -364,6 +364,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   const { fullName } = req.body;
   const { id } = req.params;
 
+  // const user = await User.findOne({email : id});
   const user = await User.findById(id);
 
   if (!user) {
