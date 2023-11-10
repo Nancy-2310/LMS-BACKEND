@@ -308,4 +308,45 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 });
 
 
+export const changePassword = asyncHandler(async (req, res, next) => {
+     // Destructuring the necessary data from the req object
+  const { oldPassword, newPassword } = req.body;
+  const { id } = req.user; // because of the middleware isLoggedIn
 
+  // Check if the values are there or not
+  if (!oldPassword || !newPassword) {
+    return next(
+      new AppError('Old password and new password are required', 400)
+    );
+  }
+
+  // Finding the user by ID and selecting the password
+  const user = await User.findById(id).select('+password');
+
+  // If no user then throw an error message
+  if (!user) {
+    return next(new AppError('Invalid user id or user does not exist', 400));
+  }
+
+  // Check if the old password is correct
+  const isPasswordValid = await user.comparePassword(oldPassword);
+
+  // If the old password is not valid then throw an error message
+  if (!isPasswordValid) {
+    return next(new AppError('Invalid old password', 400));
+  }
+
+  // Setting the new password
+  user.password = newPassword;
+
+  // Save the data in DB
+  await user.save();
+
+  // Setting the password undefined so that it won't get sent in the response
+  user.password = undefined;
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully',
+  });
+});
