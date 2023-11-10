@@ -136,7 +136,7 @@ export const login = asyncHandler(async (req, res, next) => {
   console.log("running fine b");
   // Setting the password to undefined so it does not get sent in the response
   user.password = undefined;
-
+  console.log(token);
   // Setting the token in the cookie with name token along with cookieOptions
   res.cookie('token', token, cookieOptions);
 
@@ -147,6 +147,8 @@ export const login = asyncHandler(async (req, res, next) => {
     user,
   });
 });
+
+
 
 /**
  * @LOGOUT
@@ -174,7 +176,7 @@ export const logout = asyncHandler(async (_req, res, _next) => {
  * @ROUTE @GET {{URL}}/api/v1/user/me
  * @ACCESS Private(Logged in users only)
  */
-export const getLoggedInUserDetails = asyncHandler(async (req, res, _next) => {
+export const getProfile = asyncHandler(async (req, res, _next) => {
   // Finding the user using the id from modified req object
   const user = await User.findById(req.user.id);
 
@@ -348,5 +350,65 @@ export const changePassword = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: 'Password changed successfully',
+  });
+});
+
+
+/**
+ * @UPDATE_USER
+ * @ROUTE @POST {{URL}}/api/v1/user/update/:id
+ * @ACCESS Private (Logged in user only)
+ */
+export const updateUser = asyncHandler(async (req, res, next) => {
+  // Destructuring the necessary data from the req object
+  const { fullName } = req.body;
+  const { id } = req.params;
+
+  const user = await User.findById(id);
+
+  if (!user) {
+    return next(new AppError('Invalid user id or user does not exist'));
+  }
+
+  if (fullName) {
+    user.fullName = fullName;
+  }
+
+  // Run only if user sends a file
+  if (req.file) {
+    // Deletes the old image uploaded by the user
+    await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+
+    try {
+      const result = await cloudinary.v2.uploader.upload(req.file.path, {
+        folder: 'lms', // Save files in a folder named lms
+        width: 250,
+        height: 250,
+        gravity: 'faces', // This option tells cloudinary to center the image around detected faces (if any) after cropping or resizing the original image
+        crop: 'fill',
+      });
+
+      // If success
+      if (result) {
+        // Set the public_id and secure_url in DB
+        user.avatar.public_id = result.public_id;
+        user.avatar.secure_url = result.secure_url;
+
+        // After successful upload remove the file from local storage
+        fs.rm(`uploads/${req.file.filename}`);
+      }
+    } catch (error) {
+      return next(
+        new AppError(error || 'File not uploaded, please try again', 400)
+      );
+    }
+  }
+
+  // Save the user object
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'User details updated successfully',
   });
 });

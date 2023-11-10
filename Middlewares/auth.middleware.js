@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
-import AppError from "../utils/error.util";
-import asyncHandler from "./asyncHandler.middleware";
+import AppError from "../utils/error.util.js";
+import asyncHandler from "./asyncHandler.middleware.js";
 
 export const isLoggedIn = asyncHandler(async(req, res, next) => {
     // extracting token from the cookies
@@ -13,8 +13,9 @@ export const isLoggedIn = asyncHandler(async(req, res, next) => {
     }
 
     // Decoding the token using jwt package verify method
-
+    // console.log("verifying jwt");
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+    // console.log("verified jwt")
 
     // If no decode send the message unauthorized 
     if(!decoded) {
@@ -27,5 +28,5 @@ export const isLoggedIn = asyncHandler(async(req, res, next) => {
     req.user = decoded;
 
     // Do not forget to call the next other wise the flow of execution will not be passed further
-          next();
-})
+    next();
+});
