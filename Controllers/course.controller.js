@@ -94,4 +94,24 @@ export const getAllCourses = asyncHandler(async (_req, res, next) => {
   });
   
 
-  
+/**
+ * @GET_LECTURES_BY_COURSE_ID
+ * @ROUTE @POST {{URL}}/api/v1/courses/:id
+ * @ACCESS Private(ADMIN, subscribed users only)
+ */
+
+export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const course = await Course.findById(id);
+
+    if(!course) {
+        return next(new AppError("No courses found with that ID", 404));
+    }
+    res.status(200).json({
+        success: true,
+        message: 'Course lectures fetched successfully',
+        lectures: course.lectures,
+
+    });
+    });
