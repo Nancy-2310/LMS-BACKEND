@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { config } from 'dotenv';
 import userRoutes from './Routes/user.routes.js';
+import courseRoutes from './Routes/course.routes.js';
 import errorMiddleware from './Middlewares/errorMiddleware.js';
 import { updateUser } from './Controllers/user.controller.js';
 // import { errorMonitor } from 'nodemailer/lib/xoauth2/index.js';
@@ -27,8 +28,9 @@ app.use('/ping', function(req, res){
     res.send('/pong');
 })
 
-app.use('/api/v1/user', userRoutes);
 //  routes of 3 modules
+app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/courses', courseRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).send('OOPS!! 404 page not found');
