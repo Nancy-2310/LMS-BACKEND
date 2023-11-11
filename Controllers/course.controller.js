@@ -286,3 +286,32 @@ export const updateCourseById = asyncHandler(async (req, res, next) => {
     });
 
 });
+
+
+/**
+ * @DELETE_COURSE_BY_ID
+ * @ROUTE @DELETE {{URL}}/api/v1/courses/:id
+ * @ACCESS Private (Admin only)
+ */
+
+export const deleteCourseById = asyncHandler(async (req, res, next) => {
+    // Extracting id from the request parameters
+    const { id } = req.params;
+
+    // Finding the course via the course ID
+    const course = await Course.findById(id);
+
+    // If course not find send the message as stated below
+    if(!course) {
+        return next(new AppError('Course with given id does not exist', 404));
+    }
+    
+    // Remove course
+    await course.remove();
+
+    // Send the message as response
+    res.status(200).json({
+        success: true,
+        message: 'Course deleted successfully',
+    });
+    });
